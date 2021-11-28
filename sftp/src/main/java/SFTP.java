@@ -21,6 +21,9 @@ public class SFTP {
 
     private static final Logger logger = LoggerFactory.getLogger(SFTP.class);
 
+    public SFTP(SftpConfig sftpConfig) {
+    }
+
     public ChannelSftp connect(SftpConfig sftpConfig){
         ChannelSftp sftp = null;
         try{
@@ -55,7 +58,7 @@ public class SFTP {
         return sftp;
     }
 
-    public void upload(String directory,String uploadFile,SftpConfig sftpConfig){
+    public void upload(String directory,String uploadFile,SftpConfig sftpConfig,String bak_path){
         ChannelSftp sftp = connect(sftpConfig);
         try{
             sftp.cd(directory);
@@ -63,6 +66,7 @@ public class SFTP {
             try{
                 sftp.mkdir(directory);
                 sftp.cd(directory);
+
             } catch (SftpException sftpException) {
                 throw new RuntimeException("ftp创建文件路径失败:" + directory);
             }
@@ -72,6 +76,7 @@ public class SFTP {
         try{
             inputStream = new FileInputStream(file);
             sftp.put(inputStream,file.getName());
+            if (bak_path != null)    new move().moveFile(bak_path,uploadFile);
         } catch (Exception e) {
             throw new RuntimeException("sftp异常"+e);
         }finally {
@@ -79,6 +84,7 @@ public class SFTP {
             closeStream(inputStream,null);
         }
     }
+
 
     public void download(String diretory,String downloadFile,String saveFile,SftpConfig sftpConfig){
         OutputStream output = null;
